@@ -6,6 +6,7 @@ import hashlib
 import base64
 import datetime
 import re
+import ssl
 
 class QuizduellApi(object):
     '''
@@ -19,17 +20,18 @@ class QuizduellApi(object):
     endorsed by FEO Media AB.
     '''
     
-    host_name = 'qkgermany.appspot.com'
+    # host_name = 'qkgermany.appspot.com'
+    host_name = 'qkgermany.feoquizserver.com'
     ''' Each country uses a different host and authorization key'''
 
     authorization_key = 'AIcaqRff3zdCyoBT'
     ''' Each country uses a different host and authorization key'''
     
-    user_agent = 'Quizduell A gzip 1.7.8'
+    user_agent = 'Quizduell A gzip 1.9.8'
     
     device_type = 'apl'
     
-    device_info = ''
+    device_info = 'Moto X'
     ''' optional, e.g. motorola|Moto X|18 '''
     
     android_id = ''
@@ -39,19 +41,24 @@ class QuizduellApi(object):
     
     password_salt = 'SQ2zgOTmQc8KXmBP'
     
-    def __init__(self, cookie_jar=None):
+    def __init__(self, cookie_jar=None, ssl_verify=True):
         '''
         Creates the API interface. Expects either an authentication cookie within
         the user supplied cookie jar or a subsequent call to
         QuizduellApi.login_user() or QuizduellApi.create_user().
         
+        @param ssl_verify: If set to False, SSL certificate verifications will be bypassed (True by default)
         @param cookie_jar: Stores authentication tokens with each request made
         @type cookie_jar: cookielib.CookieJar or None
         '''
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
         self._opener = urllib2.build_opener(
             urllib2.HTTPRedirectHandler(),
             urllib2.HTTPHandler(debuglevel=0),
-            urllib2.HTTPSHandler(debuglevel=0),
+            urllib2.HTTPSHandler(debuglevel=0, context=None if ssl_verify else ctx),
             urllib2.HTTPCookieProcessor(cookie_jar)
         )
     
